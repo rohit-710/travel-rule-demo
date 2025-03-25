@@ -11,9 +11,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { createAppKit } from '@reown/appkit/react'
 import { DefaultSIWX } from '@reown/appkit-siwx'
-import { bitcoin, bitcoinTestnet } from '@reown/appkit/networks'
+import { bitcoin, bitcoinTestnet, mainnet, arbitrum } from '@reown/appkit/networks'
 import { BitcoinAdapter } from '@reown/appkit-adapter-bitcoin'
-import { useAppKitAccount, useAppKitEvents } from '@reown/appkit/react'
+import { useAppKitAccount, useAppKitEvents, useAppKitNetwork } from '@reown/appkit/react'
+import { wagmiAdapter } from '@/context'
 
 // Add this helper function at the top level
 function formatTimestamp(timestamp: number | string | undefined): string {
@@ -41,14 +42,22 @@ function WithdrawalContent() {
   const [siwxStatus, setSiwxStatus] = useState<any>(null)
 
   const { address, isConnected } = useAppKitAccount()
+  const { chainId } = useAppKitNetwork()
   const events = useAppKitEvents()
+
+  // Determine asset type based on chain ID
+  const assetType = chainId === '000000000019d6689c085ae165831e93' || chainId === '000000000933ea01ad0ee984209779ba' ? 'BTC' : 'ETH'
+  const assetName = assetType === 'BTC' ? 'Bitcoin' : 'Ethereum'
+  const assetBalance = assetType === 'BTC' ? '0.5 BTC' : '2.5 ETH'
+  const networkFee = assetType === 'BTC' ? '0.0001 BTC' : '0.001 ETH'
+  const minAmount = assetType === 'BTC' ? '0.0001 BTC' : '0.01 ETH'
+  const maxAmount = assetType === 'BTC' ? '0.5 BTC' : '2.5 ETH'
 
   // Handle wallet connection
   useEffect(() => {
     if (isConnected && address) {
       setWalletAddress(address)
       setWalletConnected(true)
-      setSignatureVerified(true)
       setStep(2)
     } else {
       // Handle disconnection
@@ -73,11 +82,15 @@ function WithdrawalContent() {
             setSiwxStatus(siwxData)
             // Check if signature exists and is not empty
             setSignatureVerified(!!siwxData.signature)
+          } else {
+            setSignatureVerified(false)
           }
         } catch (e) {
           console.error('Failed to parse SIWX status:', e)
           setSignatureVerified(false)
         }
+      } else {
+        setSignatureVerified(false)
       }
     }
 
@@ -269,10 +282,10 @@ function WithdrawalContent() {
                     <div className="grid gap-2">
                       <Label htmlFor="asset">Asset</Label>
                       <div className="flex items-center gap-2 rounded-md border p-2">
-                        <span className="font-medium">BTC</span>
-                        <span className="text-sm text-muted-foreground">Bitcoin</span>
+                        <span className="font-medium">{assetType}</span>
+                        <span className="text-sm text-muted-foreground">{assetName}</span>
                         <Badge variant="outline" className="ml-auto">
-                          Balance: 0.5 BTC
+                          Balance: {assetBalance}
                         </Badge>
                       </div>
                     </div>
@@ -287,8 +300,8 @@ function WithdrawalContent() {
                         onChange={(e) => setAmount(e.target.value)}
                       />
                       <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Min: 0.0001 BTC</span>
-                        <span className="text-muted-foreground">Max: 0.5 BTC</span>
+                        <span className="text-muted-foreground">Min: {minAmount}</span>
+                        <span className="text-muted-foreground">Max: {maxAmount}</span>
                       </div>
                     </div>
 
@@ -296,7 +309,7 @@ function WithdrawalContent() {
                       <Label>Network Fee</Label>
                       <div className="flex items-center justify-between rounded-md border p-2">
                         <span className="text-sm">Estimated Network Fee</span>
-                        <span className="font-medium">0.0001 BTC</span>
+                        <span className="font-medium">{networkFee}</span>
                       </div>
                     </div>
                   </div>
@@ -328,7 +341,7 @@ function WithdrawalContent() {
                       </div>
                       <h3 className="mb-1 text-lg font-medium">Transaction Submitted</h3>
                       <p className="mb-4 text-sm text-muted-foreground">
-                        Your withdrawal of {amount} BTC has been submitted to the network
+                        Your withdrawal of {amount} {assetType} has been submitted to the network
                       </p>
                     </div>
                   </div>
@@ -378,11 +391,13 @@ export default function WithdrawalPage() {
     const initAppKit = async () => {
       const modal = createAppKit({
         projectId: process.env.NEXT_PUBLIC_APPKIT_PROJECT_ID || "",
-        networks: [bitcoin, bitcoinTestnet],
-        adapters: [bitcoinAdapter],
-        defaultNetwork: bitcoin,
+        networks: [bitcoin, bitcoinTestnet, mainnet, arbitrum],
+        adapters: [bitcoinAdapter, wagmiAdapter],
+        defaultNetwork: mainnet,
         features: {
-          analytics: true
+          analytics: true,
+          socials: false,
+          email: false
         },
         termsConditionsUrl: 'https://reown.com/terms-of-service',
         privacyPolicyUrl: 'https://reown.com/privacy-policy',

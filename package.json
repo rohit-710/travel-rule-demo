@@ -39,6 +39,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@reown/appkit": "^1.7.0",
     "@reown/appkit-adapter-bitcoin": "^1.7.0",
+    "@reown/appkit-adapter-wagmi": "^1.7.0",
     "@reown/appkit-siwx": "^1.7.0",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
@@ -60,6 +61,8 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.6",
+    "viem": "^2.23.15",
+    "wagmi": "^2.14.15",
     "zod": "^3.24.1"
   },
   "devDependencies": {
