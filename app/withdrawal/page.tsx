@@ -40,6 +40,7 @@ function WithdrawalContent() {
   const [withdrawalComplete, setWithdrawalComplete] = useState(false)
   const [walletAddress, setWalletAddress] = useState("")
   const [siwxStatus, setSiwxStatus] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const { address, isConnected } = useAppKitAccount()
   const { chainId } = useAppKitNetwork()
@@ -104,8 +105,13 @@ function WithdrawalContent() {
 
   const completeWithdrawal = () => {
     if (amount && Number.parseFloat(amount) > 0) {
-      setWithdrawalComplete(true)
-      setStep(4)
+      setIsLoading(true)
+      // Simulate processing time
+      setTimeout(() => {
+        setIsLoading(false)
+        setWithdrawalComplete(true)
+        setStep(4)
+      }, 5000)
     }
   }
 
@@ -316,14 +322,36 @@ function WithdrawalContent() {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={() => setStep(2)}>
+                <Button variant="outline" onClick={() => setStep(2)} disabled={isLoading}>
                   Back
                 </Button>
-                <Button onClick={completeWithdrawal} disabled={!amount || Number.parseFloat(amount) <= 0}>
-                  Confirm Withdrawal
+                <Button 
+                  onClick={completeWithdrawal} 
+                  disabled={!amount || Number.parseFloat(amount) <= 0 || isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Processing...
+                    </div>
+                  ) : (
+                    'Confirm Withdrawal'
+                  )}
                 </Button>
               </CardFooter>
             </Card>
+          )}
+
+          {isLoading && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                </div>
+                <h3 className="mb-1 text-lg font-medium">Processing Withdrawal</h3>
+                <p className="text-sm text-muted-foreground">Please wait while we process your transaction</p>
+              </div>
+            </div>
           )}
 
           {step === 4 && (
@@ -336,8 +364,8 @@ function WithdrawalContent() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
-                      <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
-                        <Check className="h-12 w-12 text-primary" />
+                      <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-green-500/10">
+                        <Check className="h-12 w-12 text-green-500 animate-scale-in" />
                       </div>
                       <h3 className="mb-1 text-lg font-medium">Transaction Submitted</h3>
                       <p className="mb-4 text-sm text-muted-foreground">
