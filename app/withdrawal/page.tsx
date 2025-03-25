@@ -15,7 +15,9 @@ import { bitcoin, bitcoinTestnet, mainnet, arbitrum } from '@reown/appkit/networ
 import { BitcoinAdapter } from '@reown/appkit-adapter-bitcoin'
 import { useAppKitAccount, useAppKitEvents, useAppKitNetwork } from '@reown/appkit/react'
 import { wagmiAdapter } from '@/context'
+import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 
+const etherAdapter = new EthersAdapter()
 // Add this helper function at the top level
 function formatTimestamp(timestamp: number | string | undefined): string {
   if (!timestamp) return 'N/A'
@@ -420,7 +422,7 @@ export default function WithdrawalPage() {
       const modal = createAppKit({
         projectId: process.env.NEXT_PUBLIC_APPKIT_PROJECT_ID || "",
         networks: [bitcoin, bitcoinTestnet, mainnet, arbitrum],
-        adapters: [bitcoinAdapter, wagmiAdapter],
+        adapters: [bitcoinAdapter, etherAdapter],
         defaultNetwork: mainnet,
         features: {
           analytics: true,
