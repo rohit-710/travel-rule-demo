@@ -43,6 +43,16 @@ function WithdrawalContent() {
   const [walletAddress, setWalletAddress] = useState("")
   const [siwxStatus, setSiwxStatus] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [redirectUri, setRedirectUri] = useState<string | null>(null)
+
+  // Get redirect_uri from URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const uri = params.get('redirect_uri')
+    if (uri) {
+      setRedirectUri(uri)
+    }
+  }, [])
 
   const { address, isConnected } = useAppKitAccount()
   const { chainId } = useAppKitNetwork()
@@ -113,6 +123,13 @@ function WithdrawalContent() {
         setIsLoading(false)
         setWithdrawalComplete(true)
         setStep(4)
+        
+        // If redirect_uri is provided, redirect after a short delay
+        if (redirectUri) {
+          setTimeout(() => {
+            window.location.href = `${redirectUri}://travel-rule-verify?status=success`
+          }, 2000)
+        }
       }, 5000)
     }
   }
