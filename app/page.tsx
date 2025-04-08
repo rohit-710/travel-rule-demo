@@ -1,8 +1,27 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowRight, Shield, FileCheck, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
 
-export default function Home() {
+// Client-side component to handle URL parameters
+function HomeContent() {
+  const [redirectUri, setRedirectUri] = useState<string | null>(null)
+  
+  useEffect(() => {
+    // Get redirect_uri from URL parameters
+    const params = new URLSearchParams(window.location.search)
+    const uri = params.get('redirect_uri')
+    console.log('Home page - Redirect URI from URL:', uri)
+    setRedirectUri(uri)
+  }, [])
+  
+  // Create the withdrawal URL with the redirect_uri parameter if it exists
+  const withdrawalUrl = redirectUri
+    ? `/withdrawal?redirect_uri=${encodeURIComponent(redirectUri)}`
+    : '/withdrawal';
+  
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
@@ -15,10 +34,10 @@ export default function Home() {
             <Link href="/" className="text-sm font-medium">
               Home
             </Link>
-            <Link href="/withdrawal" className="text-sm font-medium text-muted-foreground">
+            <Link href={withdrawalUrl} className="text-sm font-medium text-muted-foreground">
               Demo
             </Link>
-            <Link href="/withdrawal">
+            <Link href={withdrawalUrl}>
               <Button size="sm">Get Started</Button>
             </Link>
           </nav>
@@ -35,7 +54,7 @@ export default function Home() {
               wallets.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link href="/withdrawal">
+              <Link href={withdrawalUrl}>
                 <Button size="lg" className="gap-2">
                   Try Withdrawal Demo <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -126,7 +145,7 @@ export default function Home() {
             <p className="mb-8 text-muted-foreground">
               Try our interactive withdrawal demo to see how the Travel Rule is implemented in a real-world scenario.
             </p>
-            <Link href="/withdrawal">
+            <Link href={withdrawalUrl}>
               <Button size="lg" className="gap-2">
                 Try Withdrawal Demo <ArrowRight className="h-4 w-4" />
               </Button>
@@ -154,5 +173,10 @@ export default function Home() {
       </footer>
     </div>
   )
+}
+
+// Server component wrapper
+export default function Home() {
+  return <HomeContent />
 }
 

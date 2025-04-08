@@ -53,10 +53,15 @@ function WithdrawalContent() {
       console.log('Redirect URI from URL:', uri) // Add logging for debugging
       
       if (uri) {
-        // Clean the URI to ensure it's just the scheme without any protocol
-        const cleanUri = uri.replace(/^https?:\/\//, '').replace(/\/$/, '')
+        // For app schemes, we want to keep them as is
+        // Only clean URLs that start with http:// or https://
+        const cleanUri = uri.startsWith('http') 
+          ? uri.replace(/^https?:\/\//, '').replace(/\/$/, '')
+          : uri
         console.log('Cleaned Redirect URI:', cleanUri)
         setRedirectUri(cleanUri)
+      } else {
+        console.log('No redirect_uri parameter found in URL')
       }
     } catch (error) {
       console.error('Error parsing URL parameters:', error)
@@ -143,8 +148,14 @@ function WithdrawalContent() {
               : `${redirectUri}://travel-rule-verify?status=success`
             
             console.log('Final redirect URL:', redirectUrl)
-            window.location.href = redirectUrl
+            try {
+              window.location.href = redirectUrl
+            } catch (error) {
+              console.error('Error redirecting:', error)
+            }
           }, 2000)
+        } else {
+          console.log('No redirect_uri available, skipping redirection')
         }
       }, 5000)
     }
@@ -170,12 +181,30 @@ function WithdrawalContent() {
           : `${redirectUri}://travel-rule-verify?status=success`
         
         console.log('Final redirect URL:', redirectUrl)
-        window.location.href = redirectUrl
+        try {
+          window.location.href = redirectUrl
+        } catch (error) {
+          console.error('Error redirecting:', error)
+        }
       }, 3000)
       
       return () => clearTimeout(redirectTimer)
     }
   }, [step, redirectUri])
+
+  // Add a function to test the redirection directly
+  const testRedirect = () => {
+    if (redirectUri) {
+      const redirectUrl = redirectUri.includes('://') 
+        ? `${redirectUri}?status=success` 
+        : `${redirectUri}://travel-rule-verify?status=success`
+      
+      console.log('Testing redirect to:', redirectUrl)
+      window.location.href = redirectUrl
+    } else {
+      console.log('No redirect_uri available for testing')
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -449,6 +478,15 @@ function WithdrawalContent() {
                       <span className="text-sm">~10 minutes</span>
                     </div>
                   </div>
+                  
+                  {redirectUri && (
+                    <div className="mt-4 p-4 border rounded-md bg-muted/50">
+                      <h3 className="text-sm font-medium mb-2">Redirect URI: {redirectUri}</h3>
+                      <Button onClick={testRedirect} variant="outline" className="w-full">
+                        Test Redirect Now
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
               <CardFooter>
