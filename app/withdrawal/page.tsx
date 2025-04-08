@@ -47,10 +47,19 @@ function WithdrawalContent() {
 
   // Get redirect_uri from URL parameters
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const uri = params.get('redirect_uri')
-    if (uri) {
-      setRedirectUri(uri)
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const uri = params.get('redirect_uri')
+      console.log('Redirect URI from URL:', uri) // Add logging for debugging
+      
+      if (uri) {
+        // Clean the URI to ensure it's just the scheme without any protocol
+        const cleanUri = uri.replace(/^https?:\/\//, '').replace(/\/$/, '')
+        console.log('Cleaned Redirect URI:', cleanUri)
+        setRedirectUri(cleanUri)
+      }
+    } catch (error) {
+      console.error('Error parsing URL parameters:', error)
     }
   }, [])
 
@@ -126,8 +135,15 @@ function WithdrawalContent() {
         
         // If redirect_uri is provided, redirect after a short delay
         if (redirectUri) {
+          console.log('Redirecting to:', `${redirectUri}://travel-rule-verify?status=success`)
           setTimeout(() => {
-            window.location.href = `${redirectUri}://travel-rule-verify?status=success`
+            // Ensure the redirect URI is properly formatted
+            const redirectUrl = redirectUri.includes('://') 
+              ? `${redirectUri}?status=success` 
+              : `${redirectUri}://travel-rule-verify?status=success`
+            
+            console.log('Final redirect URL:', redirectUrl)
+            window.location.href = redirectUrl
           }, 2000)
         }
       }, 5000)
@@ -142,6 +158,24 @@ function WithdrawalContent() {
     setWithdrawalComplete(false)
     setWalletAddress("")
   }
+
+  // Add a useEffect to handle redirection when step 4 is reached
+  useEffect(() => {
+    if (step === 4 && redirectUri) {
+      console.log('Step 4 reached, redirecting to:', `${redirectUri}://travel-rule-verify?status=success`)
+      const redirectTimer = setTimeout(() => {
+        // Ensure the redirect URI is properly formatted
+        const redirectUrl = redirectUri.includes('://') 
+          ? `${redirectUri}?status=success` 
+          : `${redirectUri}://travel-rule-verify?status=success`
+        
+        console.log('Final redirect URL:', redirectUrl)
+        window.location.href = redirectUrl
+      }, 3000)
+      
+      return () => clearTimeout(redirectTimer)
+    }
+  }, [step, redirectUri])
 
   return (
     <div className="flex min-h-screen flex-col">
