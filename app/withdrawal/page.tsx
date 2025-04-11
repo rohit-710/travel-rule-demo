@@ -11,13 +11,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { createAppKit } from '@reown/appkit/react'
 import { DefaultSIWX } from '@reown/appkit-siwx'
-import { bitcoin, bitcoinTestnet, mainnet, arbitrum } from '@reown/appkit/networks'
+import { bitcoin, bitcoinTestnet, mainnet, arbitrum, solana } from '@reown/appkit/networks'
 import { BitcoinAdapter } from '@reown/appkit-adapter-bitcoin'
 import { useAppKitAccount, useAppKitEvents, useAppKitNetwork } from '@reown/appkit/react'
 import { wagmiAdapter } from '@/context'
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
+import {SolanaAdapter} from '@reown/appkit-adapter-solana'
 
 const etherAdapter = new EthersAdapter()
+const solanaAdapter = new SolanaAdapter()
 // Add this helper function at the top level
 function formatTimestamp(timestamp: number | string | undefined): string {
   if (!timestamp) return 'N/A'
@@ -73,12 +75,41 @@ function WithdrawalContent() {
   const events = useAppKitEvents()
 
   // Determine asset type based on chain ID
-  const assetType = chainId === '000000000019d6689c085ae165831e93' || chainId === '000000000933ea01ad0ee984209779ba' ? 'BTC' : 'ETH'
-  const assetName = assetType === 'BTC' ? 'Bitcoin' : 'Ethereum'
-  const assetBalance = assetType === 'BTC' ? '0.5 BTC' : '2.5 ETH'
-  const networkFee = assetType === 'BTC' ? '0.0001 BTC' : '0.001 ETH'
-  const minAmount = assetType === 'BTC' ? '0.0001 BTC' : '0.01 ETH'
-  const maxAmount = assetType === 'BTC' ? '0.5 BTC' : '2.5 ETH'
+  const assetType = chainId === '000000000019d6689c085ae165831e93' || chainId === '000000000933ea01ad0ee984209779ba' 
+    ? 'BTC' 
+    : chainId === '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
+      ? 'SOL'
+      : 'ETH'
+  
+  const assetName = assetType === 'BTC' 
+    ? 'Bitcoin' 
+    : assetType === 'SOL'
+      ? 'Solana'
+      : 'Ethereum'
+  
+  const assetBalance = assetType === 'BTC' 
+    ? '0.5 BTC' 
+    : assetType === 'SOL'
+      ? '10 SOL'
+      : '2.5 ETH'
+  
+  const networkFee = assetType === 'BTC' 
+    ? '0.0001 BTC' 
+    : assetType === 'SOL'
+      ? '0.0001 SOL'
+      : '0.001 ETH'
+  
+  const minAmount = assetType === 'BTC' 
+    ? '0.0001 BTC' 
+    : assetType === 'SOL'
+      ? '0.1 SOL'
+      : '0.01 ETH'
+  
+  const maxAmount = assetType === 'BTC' 
+    ? '0.5 BTC' 
+    : assetType === 'SOL'
+      ? '10 SOL'
+      : '2.5 ETH'
 
   // Handle wallet connection
   useEffect(() => {
@@ -510,8 +541,8 @@ export default function WithdrawalPage() {
     const initAppKit = async () => {
       const modal = createAppKit({
         projectId: process.env.NEXT_PUBLIC_APPKIT_PROJECT_ID || "",
-        networks: [bitcoin, bitcoinTestnet, mainnet, arbitrum],
-        adapters: [bitcoinAdapter, etherAdapter],
+        networks: [bitcoin, bitcoinTestnet, mainnet, arbitrum, solana],
+        adapters: [bitcoinAdapter, etherAdapter, solanaAdapter],
         defaultNetwork: mainnet,
         features: {
           analytics: true,
